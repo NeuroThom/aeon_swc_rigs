@@ -7,7 +7,7 @@ This package is designed to be imported and used as core infrastructure by exper
 
 By convention these repos should:
 
-- be named with the prefix "aeon_exp_*", or "aeon_qc_*" for testing and quality control rigs respectively
+- be named with the prefix `aeon_exp_*`, or `aeon_qc_*` for testing and quality control rigs respectively
 - define their own rig and task schemas by subclassing the models in `swc.aeon_rigs`
 - generate JSON Schema from those models using `pydantic`
 - use the JSON schemas to generate Bonsai extensions using `Bonsai.sgen` and to validate YAML configuration files.
@@ -16,9 +16,9 @@ The environment (defined by a `pyproject.toml`) and pydantic models defining cla
 
 ## Using `swc-aeon-rigs` in a new experiment repository
 
-A downstream experiment repo should:
+### 1. Name and version your project, and declare `swc-aeon-rigs` as a dependency. 
 
-### 1. Declare the dependency in `pyproject.toml` and add the `.git` as a source
+This should be done in a new file named `pyproject.toml` and add the `.git` repository as a source. Example below:
 
 ```toml
 [project]
@@ -36,7 +36,20 @@ line-length = 108
 swc-aeon-rigs = { git = "https://github.com/SainsburyWellcomeCentre/aeon_swc_rigs.git" }
 ```
 
-### 2. Install the environment using `uv`
+## 2. Install the uv python package manager
+
+We recommend uv for easy and fast python environment and package management
+
+Install Python if not already installed: https://www.python.org/
+Install `uv` if not already installed:
+
+On Windows, to get the latest version:
+```
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+For further information or other operating systems, see the [documentation pages](https://docs.astral.sh/uv/getting-started/installation/) for `uv` 
+
+## 3. Create python environment
 
 ```bash
 uv sync
@@ -45,7 +58,7 @@ uv sync
 This installs:
 - your experiment package
 - swc-aeon-rigs
-- all dependencies listed in the `pyproject.toml`.
+- all other dependencies listed in the `pyproject.toml`.
 
 ### 3. Create your experiment package structure
 
@@ -60,7 +73,9 @@ src/
 ```
 
 `rig.py` composes and expands on devices from `swc.aeon_rigs.*` to describe this rig.  
+
 `task.py` comprises all your task parameters.
+
 `experiment.py` subclasses `swc.aeon_rigs.experiment.Experiment` and describes your experiment metadata.
 
 ### 4. Generate the JSON Schema
@@ -69,7 +84,7 @@ src/
 uv run python -m swc.aeon_exp.myTask.experiment
 ```
 
-This writes `MyExperiment.json` (or whatever filename your `main()` function outputs).
+This writes `MyExperiment.json` (or whatever filename your `main()` function within `experiment.py` outputs).
 
 ### 5. Generate Bonsai extensions
 
@@ -79,11 +94,11 @@ One way is to copy the `dotnet-tools.json` in the `.config` directory of this re
 ```bash
 dotnet tool restore
 ```
-
-Generate typed extension nodes:
+See [Bonsai.Sgen](https://bonsai-rx.org/sgen/) documentation for more details.
+Generate typed extension nodes with `Bonsai.Sgen`:
 
 ```bash
 dotnet bonsai.sgen MyExperiment.json -o Extensions --serializer yaml
 ```
 
-This produces `*.Generated.cs` C# definitions under the `Extensions/` directory, which Bonsai loads automatically.
+This produces `*.Generated.cs` C# definitions under the `Extensions/` directory, which Bonsai will then load automatically when run from this environment.
